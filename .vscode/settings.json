@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "*.log": "groovy",
+        "*.BUILD": "shellscript",
+        "*.proto": "proto3",
+        ".clang-format": "yaml",
+        "*.pc": "makefile",
+        "*.ejs": "html",
+        "*.service": "lua",
+        "*.topic": "lua",
+        "*.config": "python",
+        "*.recipe": "python",
+        "*.cbc": "python",
+        "*.package": "python",
+        "string": "cpp",
+        "array": "cpp",
+        "functional": "cpp",
+        "type_traits": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp"
+    }
+}

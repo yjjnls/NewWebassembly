@@ -1,1 +1,1 @@
-emcc ../example.cpp -s WASM=1 --bind -o example.js
+emcc ../example.cc -s WASM=1 --bind -o example.js
