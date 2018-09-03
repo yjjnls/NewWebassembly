@@ -1,3 +1,8 @@
+export CC=clang 
+export CXX=clang++ 
+export LINKXX=clang++ 
+export LINK=clang
+
 node-gyp clean 
 
 mkdir -p build 

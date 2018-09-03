@@ -1,6 +1,8 @@
 
 #include <emscripten/bind.h>
 
+using namespace emscripten::internal;
+
 extern "C" {
 void _embind_register_class(
     TYPEID classType,
