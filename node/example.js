@@ -1755,8 +1755,8 @@ var ASM_CONSTS = [];
 
 STATIC_BASE = GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 5200;
-/* global initializers */  __ATINIT__.push({ func: function() { __GLOBAL__sub_I_example_cpp() } }, { func: function() { __GLOBAL__sub_I_bind_cpp() } });
+STATICTOP = STATIC_BASE + 7984;
+/* global initializers */  __ATINIT__.push({ func: function() { __GLOBAL__sub_I_example_cc() } }, { func: function() { __GLOBAL__sub_I_bind_cpp() } });
 
 
 
@@ -1764,7 +1764,7 @@ STATICTOP = STATIC_BASE + 5200;
 
 
 
-var STATIC_BUMP = 5200;
+var STATIC_BUMP = 7984;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -3695,6 +3695,8 @@ function copyTempDouble(ptr) {
       Module['abort']();
     }
 
+   
+
   
   function _emscripten_memcpy_big(dest, src, num) {
       HEAPU8.set(HEAPU8.subarray(src, src+num), dest);
@@ -3906,10 +3908,10 @@ var real___GLOBAL__sub_I_bind_cpp = asm["__GLOBAL__sub_I_bind_cpp"]; asm["__GLOB
   return real___GLOBAL__sub_I_bind_cpp.apply(null, arguments);
 };
 
-var real___GLOBAL__sub_I_example_cpp = asm["__GLOBAL__sub_I_example_cpp"]; asm["__GLOBAL__sub_I_example_cpp"] = function() {
+var real___GLOBAL__sub_I_example_cc = asm["__GLOBAL__sub_I_example_cc"]; asm["__GLOBAL__sub_I_example_cc"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___GLOBAL__sub_I_example_cpp.apply(null, arguments);
+  return real___GLOBAL__sub_I_example_cc.apply(null, arguments);
 };
 
 var real____errno_location = asm["___errno_location"]; asm["___errno_location"] = function() {
@@ -3934,6 +3936,12 @@ var real__free = asm["_free"]; asm["_free"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return real__free.apply(null, arguments);
+};
+
+var real__llvm_bswap_i32 = asm["_llvm_bswap_i32"]; asm["_llvm_bswap_i32"] = function() {
+  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+  return real__llvm_bswap_i32.apply(null, arguments);
 };
 
 var real__malloc = asm["_malloc"]; asm["_malloc"] = function() {
@@ -3994,10 +4002,10 @@ var __GLOBAL__sub_I_bind_cpp = Module["__GLOBAL__sub_I_bind_cpp"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["__GLOBAL__sub_I_bind_cpp"].apply(null, arguments) };
-var __GLOBAL__sub_I_example_cpp = Module["__GLOBAL__sub_I_example_cpp"] = function() {
+var __GLOBAL__sub_I_example_cc = Module["__GLOBAL__sub_I_example_cc"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__GLOBAL__sub_I_example_cpp"].apply(null, arguments) };
+  return Module["asm"]["__GLOBAL__sub_I_example_cc"].apply(null, arguments) };
 var ___errno_location = Module["___errno_location"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
@@ -4014,6 +4022,10 @@ var _free = Module["_free"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["_free"].apply(null, arguments) };
+var _llvm_bswap_i32 = Module["_llvm_bswap_i32"] = function() {
+  assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+  assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+  return Module["asm"]["_llvm_bswap_i32"].apply(null, arguments) };
 var _malloc = Module["_malloc"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');

@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <string.h>
 
 #define EMSCRIPTEN_ALWAYS_INLINE __attribute__((always_inline))
 

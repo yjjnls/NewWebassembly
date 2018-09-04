@@ -1,40 +1,18 @@
-#include <string>
 #include <emscripten/bind.h>
+#include "example.h"
 
 using namespace emscripten;
 
-class MyClass
+std::string MyClass::getStringFromInstance(const MyClass &instance)
 {
- public:
-    MyClass(int x, std::string y)
-        : x(x)
-        , y(y)
-    {
-    }
-
-    void incrementX()
-    {
-        ++x;
-    }
-
-    int getX() const { return x; }
-    void setX(int x_) { x = x_; }
-
-    static std::string getStringFromInstance(const MyClass &instance)
-    {
-        return instance.y;
-    }
-
- private:
-    int x;
-    std::string y;
-};
+    return instance.y;
+}
 
 // Binding code
 EMSCRIPTEN_BINDINGS(my_class_example)
 {
     class_<MyClass>("MyClass")
-        .constructor<int, std::string>()
+        .constructor<int>()
         .function("incrementX", &MyClass::incrementX)
         .property("x", &MyClass::getX, &MyClass::setX)
         .class_function("getStringFromInstance", &MyClass::getStringFromInstance);

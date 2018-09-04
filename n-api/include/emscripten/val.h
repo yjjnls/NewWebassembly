@@ -179,7 +179,7 @@ namespace emscripten {
             } w[2];
             double d;
         };
-        static_assert(sizeof(GenericWireType) == 8, "GenericWireType must be 8 bytes");
+        static_assert(sizeof(GenericWireType) == 16, "GenericWireType must be 8 bytes");
         static_assert(alignof(GenericWireType) == 8, "GenericWireType must be 8-byte-aligned");
 
         inline void writeGenericWireType(GenericWireType*& cursor, float wt) {
