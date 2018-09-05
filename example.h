@@ -8,8 +8,13 @@ class MyClass
         : x(x_)
         , y("hello")
     {
-        printf("---------invoke MyClass constructor--------\n");
+        printf("---------invoke MyClass constructor  x=%d --------\n",x);
     }
+    ~MyClass()
+    {
+        printf("---------invoke MyClass destructor--------\n");
+    }
+
 
     void incrementX()
     {

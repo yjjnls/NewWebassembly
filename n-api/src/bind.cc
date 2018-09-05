@@ -5,8 +5,7 @@
 #include "common.h"
 #include "../../example.h"
 
-namespace emscripten {
-namespace internal {
+using namespace emscripten::internal;
 
 extern "C" {
 void _embind_register_class(
@@ -25,9 +24,9 @@ void _embind_register_class(
     GenericFunction destructor)  // pointer of delete function
 {
 
-    printf("---------------------------\n");
-    printf("%s\n%s\n%s\n%p\n%s\n%p\n%s\n%p\n%s\n%p\n%s\n%s\n%p\n", ((std::type_info *)classType)->name(), ((std::type_info *)pointerType)->name(), ((std::type_info *)constPointerType)->name(), baseClassType, getActualTypeSignature, getActualType, upcastSignature, upcast, downcastSignature, downcast, className, destructorSignature, destructor);
-    printf("---------------------------\n");
+    // printf("---------------------------\n");
+    // printf("%s\n%s\n%s\n%p\n%s\n%p\n%s\n%p\n%s\n%p\n%s\n%s\n%p\n", ((std::type_info *)classType)->name(), ((std::type_info *)pointerType)->name(), ((std::type_info *)constPointerType)->name(), baseClassType, getActualTypeSignature, getActualType, upcastSignature, upcast, downcastSignature, downcast, className, destructorSignature, destructor);
+    // printf("---------------------------\n");
 }
 GenericFunction construct = nullptr;
 void _embind_register_class_constructor(
@@ -38,25 +37,10 @@ void _embind_register_class_constructor(
     GenericFunction invoker,
     GenericFunction constructor)
 {
-    printf("--------------register constructor-------------\n");
-    printf("argCount: %d\n", argCount);
-    // construct = constructor;
+    // printf("--------------register constructor-------------\n");
+    // printf("argCount: %d\n", argCount);
+    construct = constructor;
     // printf("~~~~ constructor: %p\n",construct);
-    MyClass *(*factory)(int x) = nullptr;
-    printf("~~~ %s\n", typeid(MyClass).name());
-    printf("~~~ %s\n", typeid(MyClass*).name());
-    
-    printf("~~~ %s\n", typeid(&internal::operator_new<MyClass, int>).name());
-    printf("~~~ %s\n", typeid(MyClass *(*)(int &&x)).name());
-    printf("~~~ %s\n", typeid(MyClass *(*)(int x)).name());
-
-    printf("~~~ %p\n", constructor);
-    factory = reinterpret_cast<MyClass *(*)(int &&x)>(constructor);
-    printf("~~~ %p\n", factory);
-    std::string str = std::string("hello");
-    int i=10;
-    MyClass *p = factory(i);
-    delete p;
 }
 
 void _embind_register_class_function(
@@ -106,8 +90,6 @@ void _embind_register_class_class_property(
     const char *setterSignature,
     GenericFunction setter) {}
 }
-}  // namespace internal
-}  // namespace emscripten
 ///////////////////////////////////////////////////////////////////////////////////
 
 
@@ -123,12 +105,46 @@ static napi_value Method(napi_env env, napi_callback_info info)
     return world;
 }
 
+static napi_value Create(napi_env env, napi_callback_info info)
+{
+    napi_value instance;
+    MyClass *(*factory)(int &&x) = nullptr;
+    // printf("~~~ %s\n", typeid(MyClass).name());
+    // printf("~~~ %s\n", typeid(MyClass *).name());
+
+    // printf("~~~ %s\n", typeid(&internal::operator_new<MyClass, int>).name());
+    // printf("~~~ %s\n", typeid(MyClass * (*)(int &&x)).name());
+    // printf("~~~ %s\n", typeid(MyClass * (*)(int x)).name());
+
+    // printf("~~~ %p\n", constructor);
+    factory = reinterpret_cast<MyClass *(*)(int &&x)>(construct);
+    // printf("~~~ %p\n", factory);
+    size_t argc = 1;
+    napi_value args[1];
+    napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+
+    int32_t x = 0;
+    napi_get_value_int32(env, args[0], &x);
+    MyClass *p = factory(std::move(x));
+    printf("========= create MyClass %p \n", p);
+
+    napi_create_external(env, p, NULL, NULL, &instance);
+    return instance;
+}
+static napi_value getStringFromInstance(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1];
+    napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+
+    void *p = nullptr;
+    assert(napi_get_value_external(env, args[0], &p) == napi_ok);
+    printf("========= create MyClass %p \n", p);
+}
 // static napi_value Initialize(napi_env env, napi_callback_info info) {}
 // static napi_value Call(napi_env env, napi_callback_info info) {}
 // static napi_value Release(napi_env env, napi_callback_info info) {}
 
-// static napi_value Setup(napi_env env, napi_callback_info info) {}
-// static napi_value Teardown(napi_env env, napi_callback_info info) {}
 
 // static napi_value GetValue(napi_env env, napi_callback_info info) {}
 // static napi_value GetError(napi_env env, napi_callback_info info) {}
@@ -136,8 +152,8 @@ static napi_value Method(napi_env env, napi_callback_info info)
 static napi_value Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
-        // NAPI_DECLARE_METHOD("setup", Setup),
-        // NAPI_DECLARE_METHOD("teardown", Teardown),
+        NAPI_DECLARE_METHOD("MyClass", Create),
+        NAPI_DECLARE_METHOD("getStringFromInstance", getStringFromInstance),
 
         // NAPI_DECLARE_METHOD("initialize", Initialize),
         // NAPI_DECLARE_METHOD("call", Call),
@@ -147,7 +163,7 @@ static napi_value Init(napi_env env, napi_value exports)
         // {"version", 0, 0, GetValue, 0, 0, napi_default, 0},
         NAPI_DECLARE_METHOD("hello", Method)};
 
-    NAPI_CALL(env, napi_define_properties(env, exports, 1, desc));
+    NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc)/sizeof(desc[0]), desc));
 
     // MyClass *p = (MyClass *)new char[sizeof(MyClass)];
     // p = new (p) MyClass(10, "hello");

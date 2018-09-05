@@ -430,7 +430,6 @@ namespace emscripten {
     namespace internal {
         template<typename ClassType, typename... Args>
         ClassType* operator_new(Args&&... args) {
-            printf("print operate_new: %s\n", typeid(ClassType).name());
             return new ClassType(std::forward<Args>(args)...);
         }
 
@@ -1174,7 +1173,6 @@ namespace emscripten {
 
         template<typename... ConstructorArgs, typename... Policies>
         EMSCRIPTEN_ALWAYS_INLINE const class_& constructor(Policies... policies) const {
-            printf("============111 %s\n",typeid(&internal::operator_new<ClassType, ConstructorArgs...>).name());
             return constructor(
                 &internal::operator_new<ClassType, ConstructorArgs...>,
                 policies...);
@@ -1183,9 +1181,6 @@ namespace emscripten {
         template<typename... Args, typename ReturnType, typename... Policies>
         EMSCRIPTEN_ALWAYS_INLINE const class_& constructor(ReturnType (*factory)(Args...), Policies...) const {
             using namespace internal;
-            printf("============ %s\n",typeid(ReturnType).name());
-            printf("============ factoryt type: %s\n",typeid(factory).name());
-            printf("============ %p\n",factory);
 
             // TODO: allows all raw pointers... policies need a rethink
             typename WithPolicies<allow_raw_pointers, Policies...>::template ArgTypeList<ReturnType, Args...> args;
