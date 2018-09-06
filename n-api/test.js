@@ -2,13 +2,13 @@
 const bindingPath = require.resolve(`./build/Release/plugin`);
 const Module = require(bindingPath);
 
-console.log('Module.hello() =', Module.hello());
+// console.log('Module.hello() =', Module.hello());
 
-var instance = new Module.MyClass(10);
+var instance = new Module.MyClass(10,'hello');
 // instance.incrementX();
 // console.log('instance.x: ' + instance.x);
 // instance.x = 20;
 // console.log('instance.x: ' + instance.x);
-console.log('instance.string: ' + Module.MyClass.getStringFromInstance(instance));
+// console.log('instance.string: ' + Module.MyClass.getStringFromInstance(instance));
 // instance.delete();
 

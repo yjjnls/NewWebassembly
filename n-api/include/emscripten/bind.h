@@ -1266,7 +1266,7 @@ namespace emscripten {
         template<typename ReturnType, typename... Args, typename... Policies>
         EMSCRIPTEN_ALWAYS_INLINE const class_& function(const char* methodName, ReturnType (ClassType::*memberFunction)(Args...), Policies...) const {
             using namespace internal;
-
+            printf("~~~~~~~~~ member function: %s\n",typeid(memberFunction).name());
             auto invoker = &MethodInvoker<decltype(memberFunction), ReturnType, ClassType*, Args...>::invoke;
 
             typename WithPolicies<Policies...>::template ArgTypeList<ReturnType, AllowedRawPointer<ClassType>, Args...> args;
