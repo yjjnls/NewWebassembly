@@ -74,11 +74,11 @@ void _embind_register_class_constructor(
     GenericFunction invoker,
     GenericFunction constructor)
 {
-    printf("--------------register constructor: invokerSignature %s-------------\n", invokerSignature);
-    printf("argCount: %d\n", argCount);
-    for (int i = 0; i < argCount; ++i) {
-        printf("%s\n", ((std::type_info *)argTypes[i])->name());
-    }
+    // printf("--------------register constructor: invokerSignature %s-------------\n", invokerSignature);
+    // printf("argCount: %d\n", argCount);
+    // for (int i = 0; i < argCount; ++i) {
+    //     printf("%s\n", ((std::type_info *)argTypes[i])->name());
+    // }
     if (table["constructor"] == nullptr) {
         table["constructor"] = new function_map;
     }
@@ -104,12 +104,19 @@ void _embind_register_class_function(
     unsigned isPureVirtual)
 {
     std::string fun_name = std::string(methodName);
+
+    // printf("function name: %s \n", fun_name.c_str());
+    // printf("argCount: %d\n", argCount);
+    // for (int i = 0; i < argCount; ++i) {
+    //     printf("%s\n", ((std::type_info *)argTypes[i])->name());
+    // }
+
     if (table[fun_name] == nullptr) {
         table[fun_name] = new function_map;
     }
     function_map *map = table[fun_name];
     function_info *info = new function_info(context, fun_name);
-    (*map)[argCount - 1] = info;
+    (*map)[argCount - 2] = info;  // arg[0]:return_type arg[1]:class_type arg[2...]:function_args
 }
 
 void _embind_register_class_property(
@@ -125,12 +132,12 @@ void _embind_register_class_property(
     void *setterContext)
 {
     std::string property_name = std::string(fieldName);
-    if (table[fun_name] == nullptr) {
-        table[fun_name] = new function_map;
+    if (table[property_name] == nullptr) {
+        table[property_name] = new function_map;
     }
-    function_map *map = table[fun_name];
-    function_info *info_getter = new function_info(getterContext, fun_name + ".getter");
-    function_info *info_setter = new function_info(setterContext, fun_name + ".setter");
+    function_map *map = table[property_name];
+    function_info *info_getter = new function_info(getterContext, property_name + ".getter");
+    function_info *info_setter = new function_info(setterContext, property_name + ".setter");
     (*map)[0] = info_getter;
     (*map)[1] = info_setter;
 }
@@ -166,129 +173,6 @@ void _embind_register_class_class_property(
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-// static napi_value Method(napi_env env, napi_callback_info info)
-// {
-//     napi_value world;
-//     const char *str = "world";
-//     size_t str_len = strlen(str);
-//     NAPI_CALL(env, napi_create_string_utf8(env, str, str_len, &world));
-//     return world;
-// }
-
-// static napi_value Create(napi_env env, napi_callback_info info)
-// {
-//     napi_value instance;
-//     MyClass *(*factory)(int &&x, const std::string &&y) = nullptr;
-//     // printf("~~~ %s\n", typeid(MyClass).name());
-//     // printf("~~~ %s\n", typeid(MyClass *).name());
-
-//     // printf("~~~ %s\n", typeid(&internal::operator_new<MyClass, int>).name());
-//     // printf("~~~ %s\n", typeid(MyClass * (*)(int &&x)).name());
-//     printf("~~~~ %s\n", typeid(factory).name());
-
-//     // printf("~~~ %p\n", constructor);
-//     factory = reinterpret_cast<MyClass *(*)(int &&x, const std::string &&y)>(construct);
-//     // printf("~~~ %p\n", factory);
-//     size_t argc = 2;
-//     napi_value args[2];
-//     napi_get_cb_info(env, info, &argc, args, NULL, NULL);
-
-//     int32_t x = 0;
-//     napi_get_value_int32(env, args[0], &x);
-
-//     size_t strlen;
-//     napi_get_value_string_utf8(env, args[1], NULL, 0, &strlen);
-//     std::string y(strlen + 1, 0);
-//     size_t res;
-//     napi_get_value_string_utf8(env, args[1], (char *)y.c_str(), strlen + 1, &res);
-//     // napi_get_value_string_utf8(env, args[1], &x);
-
-//     MyClass *p = factory(std::move(x), std::move(y));
-//     printf("========= create MyClass %p \n", p);
-
-//     napi_create_external(env, p, NULL, NULL, &instance);
-//     return instance;
-// }
-// static napi_value getStringFromInstance(napi_env env, napi_callback_info info)
-// {
-//     size_t argc = 1;
-//     napi_value args[1];
-//     napi_get_cb_info(env, info, &argc, args, NULL, NULL);
-
-//     void *p = nullptr;
-//     assert(napi_get_value_external(env, args[0], &p) == napi_ok);
-//     printf("========= create MyClass %p \n", p);
-// }
-// // static napi_value Initialize(napi_env env, napi_callback_info info) {}
-// // static napi_value Call(napi_env env, napi_callback_info info) {}
-// // static napi_value Release(napi_env env, napi_callback_info info) {}
-
-
-// // static napi_value GetValue(napi_env env, napi_callback_info info) {}
-// // static napi_value GetError(napi_env env, napi_callback_info info) {}
-
-
-
-// static napi_value Init(napi_env env, napi_value exports)
-// {
-//     napi_property_descriptor desc[] = {
-//         NAPI_DECLARE_METHOD("MyClass", Create),
-//         NAPI_DECLARE_METHOD("getStringFromInstance", getStringFromInstance),
-
-//         // NAPI_DECLARE_METHOD("initialize", Initialize),
-//         // NAPI_DECLARE_METHOD("call", Call),
-//         // NAPI_DECLARE_METHOD("release", Release),
-
-//         // {"error", 0, 0, GetError, 0, 0, napi_default, 0},
-//         // {"version", 0, 0, GetValue, 0, 0, napi_default, 0},
-//         NAPI_DECLARE_METHOD("hello", Method)};
-
-//     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
-
-//     // MyClass *p = (MyClass *)new char[sizeof(MyClass)];
-//     // p = new (p) MyClass(10, "hello");
-
-//     // p = p->MyClass::MyClass();
-
-
-//     return exports;
-// }
-
-// NAPI_MODULE(node_plugin, Init)
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// class MyClass
-// {
-//  public:
-//     static void Init(napi_env env, napi_value exports);
-//     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
-
-//  private:
-//     explicit MyClass(int x, const std::string &y)
-//         : x_(x), y_(y), env_(nullptr), wrapper_(nullptr) {}
-//     ~MyClass() { napi_delete_reference(env_, wrapper_); };
-
-//     static napi_value New(napi_env env, napi_callback_info info);
-//     static napi_value GetValue(napi_env env, napi_callback_info info);
-//     static napi_value SetValue(napi_env env, napi_callback_info info);
-//     static napi_value PlusOne(napi_env env, napi_callback_info info);
-//     static napi_value Multiply(napi_env env, napi_callback_info info);
-//     static napi_ref constructor;
-
-//     int x_;
-//     std::string y_;
-//     napi_env env_;
-//     napi_ref wrapper_;
-// };
-
-
 napi_ref MyClass::constructor;
 void MyClass::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
 {
@@ -311,17 +195,31 @@ void MyClass::Init(napi_env env, napi_value exports)
 
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, exports, "MyClass", cons));
 }
-
+// template <typename ReturnType, typename... Args>
+// void exec_fun()
+// {
+//     typedef ReturnType (*fun)(Args...) = nullptr;
+//     fun=fun(origin_f_ptr/* void * */);
+//     fun(Args...);
+// }
 napi_value MyClass::New(napi_env env, napi_callback_info info)
 {
     napi_value new_target;
     NAPI_CALL(env, napi_get_new_target(env, info, &new_target));
     bool is_constructor = (new_target != nullptr);
 
-    size_t argc = 2;
-    napi_value args[2];
+    size_t argc = 0;
     napi_value _this;
+    napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
+    napi_value args[argc];
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
+
+    printf("constructor arguments: %d\n", argc);
+    napi_valuetype valuetype;
+    for (int i = 0; i < argc; ++i) {
+        NAPI_CALL(env, napi_typeof(env, args[i], &valuetype));
+        printf("argument %d type: %d\n", i, valuetype);
+    }
 
     if (is_constructor) {
         // Invoked as constructor: `new MyClass(...)`
@@ -333,6 +231,7 @@ napi_value MyClass::New(napi_env env, napi_callback_info info)
         std::string y(strlen + 1, 0);
         size_t res;
         napi_get_value_string_utf8(env, args[1], (char *)y.c_str(), strlen + 1, &res);
+
 
         MyClass *obj = new MyClass(x, y);
 
@@ -389,16 +288,24 @@ napi_value MyClass::SetX(napi_env env, napi_callback_info info)
 napi_value MyClass::IncrementX(napi_env env, napi_callback_info info)
 {
     napi_value _this;
-    NAPI_CALL(env,
-              napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
 
     MyClass *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
-    obj->x_ += 1;
+    size_t argc = 0;
+    napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
+
+    // printf("increment arg: %d\n", argc);
+    function_info *f_info = (*table["incrementX"])[argc];
+    assert(f_info != NULL);
+    void *fun = f_info->fun;
+    typedef void (MyClass::*pf)();
+    pf p = *reinterpret_cast<pf *>(fun);
+    (obj->*p)();
 
     napi_value num;
-    NAPI_CALL(env, napi_create_int32(env, obj->x_, &num));
+    // NAPI_CALL(env, napi_create_int32(env, obj->x_, &num));
 
     return num;
 }

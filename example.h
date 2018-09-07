@@ -31,10 +31,12 @@ class MyClass
 
     void incrementX()
     {
+        printf("~~~~~~~~~~~ incrementX \n");
         ++x_;
     }
     void incrementX(int i)
     {
+        printf("~~~~~~~~~~~ incrementX %d \n",i);
         ++x_;
     }
 

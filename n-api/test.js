@@ -4,8 +4,8 @@ const Module = require(bindingPath);
 
 // console.log('Module.hello() =', Module.hello());
 
-var instance = new Module.MyClass(10,'hello');
-// instance.incrementX();
+var instance = new Module.MyClass(10.3,'hello');
+instance.incrementX();
 // console.log('instance.x: ' + instance.x);
 // instance.x = 20;
 // console.log('instance.x: ' + instance.x);
