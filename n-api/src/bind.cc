@@ -18,25 +18,42 @@ map<class_name, table(map)>
 struct function_info
 {
     function_info(GenericFunction function,
-                  const std::string &name)
+                  const std::string &name,
+                  unsigned argcount = 0,
+                  TYPEID argtypes[] = nullptr)
         : fun(function)
         , funName(name)
-        , argCount(0)
-        , invoker(nullptr)
-        , setter(nullptr)
+        , argCount(argcount)
+        , argTypes(nullptr)
+    // , invoker(nullptr)
+    // , setter(nullptr)
     {
+        argTypes = new TYPEID[argCount];
+        // memset(argTypes,0,sizeof(TYPEID)*argCount);
+        for (int i = 0; i < argCount; ++i) {
+            argTypes[i] = argtypes[i];
+        }
     }
+
+    ~function_info()
+    {
+        if (argTypes != nullptr) {
+            delete[] argTypes;
+            argTypes = nullptr;
+        }
+    }
+
 
     GenericFunction fun;
     std::string funName;
 
     unsigned argCount;
 
-    std::string invokerSignature;
-    GenericFunction invoker;
+    // std::string invokerSignature;
+    // GenericFunction invoker;
 
-    GenericFunction setter;
-    // TYPEID argTypes[];
+    // GenericFunction setter;
+    TYPEID *argTypes;
 };
 typedef std::map<int, function_info *> function_map;
 std::map<std::string /*function name*/, function_map *> table;
@@ -293,9 +310,9 @@ napi_value MyClass::IncrementX(napi_env env, napi_callback_info info)
     MyClass *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
+    ////////////////////////////////////////////////////////////////////////
     size_t argc = 0;
     napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
-
     // printf("increment arg: %d\n", argc);
     function_info *f_info = (*table["incrementX"])[argc];
     assert(f_info != NULL);
@@ -303,6 +320,7 @@ napi_value MyClass::IncrementX(napi_env env, napi_callback_info info)
     typedef void (MyClass::*pf)();
     pf p = *reinterpret_cast<pf *>(fun);
     (obj->*p)();
+    ////////////////////////////////////////////////////////////////////////
 
     napi_value num;
     // NAPI_CALL(env, napi_create_int32(env, obj->x_, &num));
