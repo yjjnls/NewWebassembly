@@ -210,8 +210,63 @@ ClassType *constructor_factory(napi_env env, size_t argc, napi_value *args)
 
             p = new ClassType(*(Size *)arg0, arg1);
         } break;
+        case 3: {
+        } break;
+        case 4: {
+        } break;
     }
     return p;
+}
+
+template <typename ClassType>
+void fun_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+{
+    switch (argc) {
+        case 2: {
+            void *arg0 = nullptr;
+            napi_get_value_external(env, args[0], arg0);
+            int32_t arg1 = 0;
+            napi_get_value_int32(env, args[1], &arg1);
+
+            obj->cv::Mat::create(*(Size *)arg0, arg1);
+        } break;
+        case 3: {
+            int32_t arg0 = 0;
+            napi_get_value_int32(env, args[0], &arg0);
+            int32_t arg1 = 0;
+            napi_get_value_int32(env, args[1], &arg1);
+            int32_t arg2 = 0;
+            napi_get_value_int32(env, args[2], &arg2);
+
+            obj->cv::Mat::create(arg0, arg1, arg2);
+        } break;
+    }
+}
+
+template <typename ClassType>
+ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+{
+    switch (argc) {
+        case 1: {
+            void *arg0 = nullptr;
+            napi_get_value_external(env, args[0], arg0);
+
+            return (*obj)(*(Rect *)arg0);
+        } break;
+    }
+}
+
+template <typename ClassType>
+ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+{
+    switch (argc) {
+        case 1: {
+            void *arg0 = nullptr;
+            napi_get_value_external(env, args[0], arg0);
+
+            return (*obj)(*(Rect *)arg0);
+        } break;
+    }
 }
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -226,9 +281,14 @@ void Mat::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
 void Mat::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
-        {"x", nullptr, nullptr, GetX, SetX, 0, napi_default, 0},
-        NAPI_DECLARE_METHOD("incrementX", IncrementX),
-        // NAPI_DECLARE_METHOD("multiply", Multiply),
+        //property
+        {"rows", nullptr, nullptr, get_rows, set_rows, 0, napi_default, 0},
+        {"data32S", nullptr, nullptr, get_data32S, nullptr, 0, napi_default, 0},
+        //function(return type, arguments, function name)
+        NAPI_DECLARE_METHOD("ones", ones),
+        NAPI_DECLARE_METHOD("create", create),
+        NAPI_DECLARE_METHOD("roi", roi)
+
     };
 
     napi_value cons;
@@ -259,26 +319,16 @@ napi_value Mat::New(napi_env env, napi_callback_info info)
     napi_value args[argc];
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
-    printf("constructor arguments: %d\n", argc);
-    napi_valuetype valuetype;
-    for (int i = 0; i < argc; ++i) {
-        NAPI_CALL(env, napi_typeof(env, args[i], &valuetype));
-        printf("argument %d type: %d\n", i, valuetype);
-    }
+    // printf("constructor arguments: %d\n", argc);
+    // napi_valuetype valuetype;
+    // for (int i = 0; i < argc; ++i) {
+    //     NAPI_CALL(env, napi_typeof(env, args[i], &valuetype));
+    //     printf("argument %d type: %d\n", i, valuetype);
+    // }
 
     if (is_constructor) {
         // Invoked as constructor: `new Mat(...)`
-        int32_t x = 0;
-        napi_get_value_int32(env, args[0], &x);
-
-        size_t strlen;
-        napi_get_value_string_utf8(env, args[1], NULL, 0, &strlen);
-        std::string y(strlen + 1, 0);
-        size_t res;
-        napi_get_value_string_utf8(env, args[1], (char *)y.c_str(), strlen + 1, &res);
-
-
-        Mat *obj = new Mat(x, y);
+        Mat *obj = constructor_factory<Mat>(env, argc, args);
 
         obj->env_ = env;
         NAPI_CALL(env, napi_wrap(env, _this, obj, Mat::Destructor,
@@ -301,7 +351,44 @@ napi_value Mat::New(napi_env env, napi_callback_info info)
     return instance;
 }
 
-napi_value Mat::GetX(napi_env env, napi_callback_info info)
+napi_value Mat::create(napi_env env, napi_callback_info info)
+{
+    size_t argc = 0;
+    napi_value _this;
+    napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
+    napi_value args[argc];
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
+
+    Mat *obj;
+    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
+
+    ////////////////////////////////////////////////////////////////////////
+    Mat *res = fun_create_factory(obj, env, argc, args);
+    ////////////////////////////////////////////////////////////////////////
+
+    return nullptr;
+}
+napi_value Mat::roi(napi_env env, napi_callback_info info)
+{
+    size_t argc = 0;
+    napi_value _this;
+    napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
+    napi_value args[argc];
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
+
+    Mat *obj;
+    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
+
+    ////////////////////////////////////////////////////////////////////////
+    Mat res = fun_roi_factory(obj, env, argc, args);
+    ////////////////////////////////////////////////////////////////////////
+
+    napi_value result;
+    napi_create_external(env, &res, nullptr, nullptr, &result);
+
+    return result;
+}
+napi_value Mat::get_rows(napi_env env, napi_callback_info info)
 {
     napi_value _this;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
@@ -310,12 +397,12 @@ napi_value Mat::GetX(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
     napi_value num;
-    NAPI_CALL(env, napi_create_int32(env, obj->x_, &num));
+    NAPI_CALL(env, napi_create_int32(env, obj->rows, &num));
 
     return num;
 }
 
-napi_value Mat::SetX(napi_env env, napi_callback_info info)
+napi_value Mat::set_rows(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value args[1];
@@ -325,35 +412,29 @@ napi_value Mat::SetX(napi_env env, napi_callback_info info)
     Mat *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
-    NAPI_CALL(env, napi_get_value_int32(env, args[0], &obj->x_));
+    NAPI_CALL(env, napi_get_value_int32(env, args[0], &obj->rows));
 
     return nullptr;
 }
 
-napi_value Mat::IncrementX(napi_env env, napi_callback_info info)
+napi_value Mat::get_data32S(napi_env env, napi_callback_info info)
 {
+    size_t argc = 1;
+    napi_value args[1];
     napi_value _this;
-    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
     Mat *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
     ////////////////////////////////////////////////////////////////////////
-    size_t argc = 0;
-    napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
-    // printf("increment arg: %d\n", argc);
-    function_info *f_info = (*table["incrementX"])[argc];
-    assert(f_info != NULL);
-    void *fun = f_info->fun;
-    typedef void (Mat::*pf)();
-    pf p = *reinterpret_cast<pf *>(fun);
-    (obj->*p)();
+    emscripten::val res = binding_utils::matData<int>(*obj);
     ////////////////////////////////////////////////////////////////////////
 
-    napi_value num;
-    // NAPI_CALL(env, napi_create_int32(env, obj->x_, &num));
+    napi_value result;
+    napi_create_external(env, &res, nullptr, nullptr, &result);
 
-    return num;
+    return result;
 }
 
 napi_value Init(napi_env env, napi_value exports)
