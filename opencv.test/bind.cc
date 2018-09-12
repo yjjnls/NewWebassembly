@@ -9,8 +9,17 @@
 class Addon
 {
  public:
-    Addon() {}
-    ~Addon() {}
+    Addon()
+        : mat_(nullptr)
+        , env_(nullptr)
+        , wrapper_(nullptr) {}
+    ~Addon()
+    {
+        if (mat_ != nullptr) {
+            delete mat_;
+            mat = nullptr;
+        }
+    }
     static void Init(napi_env env, napi_value exports);
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
 
@@ -23,6 +32,8 @@ class Addon
     static napi_value get_data32S(napi_env env, napi_callback_info info);
 
     static napi_ref constructor;
+
+    Mat *mat_;
 
     napi_env env_;
     napi_ref wrapper_;
@@ -67,7 +78,7 @@ void fun_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *a
             int32_t arg1 = 0;
             napi_get_value_int32(env, args[1], &arg1);
 
-            obj->cv::Mat::create(*(Size *)arg0, arg1);
+            obj->cv::Addon::create(*(Size *)arg0, arg1);
         } break;
         case 3: {
             int32_t arg0 = 0;
@@ -77,7 +88,7 @@ void fun_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *a
             int32_t arg2 = 0;
             napi_get_value_int32(env, args[2], &arg2);
 
-            obj->cv::Mat::create(arg0, arg1, arg2);
+            obj->cv::Addon::create(arg0, arg1, arg2);
         } break;
     }
 }
@@ -110,14 +121,14 @@ ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_val
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-napi_ref Mat::constructor;
-void Mat::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
+napi_ref Addon::constructor;
+void Addon::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
 {
-    Mat *obj = static_cast<Mat *>(nativeObject);
+    Addon *obj = static_cast<Addon *>(nativeObject);
     delete obj;
 }
 
-void Mat::Init(napi_env env, napi_value exports)
+void Addon::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
         //property
@@ -146,7 +157,7 @@ void Mat::Init(napi_env env, napi_value exports)
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, exports, "Mat", cons));
 }
 
-napi_value Mat::New(napi_env env, napi_callback_info info)
+napi_value Addon::New(napi_env env, napi_callback_info info)
 {
     napi_value new_target;
     NAPI_CALL(env, napi_get_new_target(env, info, &new_target));
@@ -167,10 +178,12 @@ napi_value Mat::New(napi_env env, napi_callback_info info)
 
     if (is_constructor) {
         // Invoked as constructor: `new Mat(...)`
-        Mat *obj = constructor_factory<Mat>(env, argc, args);
+        Addon *obj = new Addon();
+        Mat *mat = constructor_factory<Mat>(env, argc, args);
 
         obj->env_ = env;
-        NAPI_CALL(env, napi_wrap(env, _this, obj, Mat::Destructor,
+        obj->mat_ = mat;
+        NAPI_CALL(env, napi_wrap(env, _this, obj, Addon::Destructor,
                                  nullptr,  // finalize_hint
                                  &obj->wrapper_));
 
@@ -190,7 +203,7 @@ napi_value Mat::New(napi_env env, napi_callback_info info)
     return instance;
 }
 
-napi_value Mat::create(napi_env env, napi_callback_info info)
+napi_value Addon::create(napi_env env, napi_callback_info info)
 {
     size_t argc = 0;
     napi_value _this;
@@ -198,16 +211,17 @@ napi_value Mat::create(napi_env env, napi_callback_info info)
     napi_value args[argc];
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
-    Mat *obj;
+    Addon *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
     ////////////////////////////////////////////////////////////////////////
-    Mat *res = fun_create_factory(obj, env, argc, args);
+    Mat *mat = obj->mat_;
+    Mat *res = fun_create_factory(mat, env, argc, args);
     ////////////////////////////////////////////////////////////////////////
 
     return nullptr;
 }
-napi_value Mat::roi(napi_env env, napi_callback_info info)
+napi_value Addon::roi(napi_env env, napi_callback_info info)
 {
     size_t argc = 0;
     napi_value _this;
@@ -215,11 +229,12 @@ napi_value Mat::roi(napi_env env, napi_callback_info info)
     napi_value args[argc];
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
-    Mat *obj;
+    Addon *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
     ////////////////////////////////////////////////////////////////////////
-    Mat res = fun_roi_factory(obj, env, argc, args);
+    Mat *mat = obj->mat_;
+    Mat res = fun_roi_factory(mat, env, argc, args);
     ////////////////////////////////////////////////////////////////////////
 
     napi_value result;
@@ -227,47 +242,54 @@ napi_value Mat::roi(napi_env env, napi_callback_info info)
 
     return result;
 }
-napi_value Mat::get_rows(napi_env env, napi_callback_info info)
+napi_value Addon::get_rows(napi_env env, napi_callback_info info)
 {
     napi_value _this;
     NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
 
-    Mat *obj;
+    Addon *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
+    ////////////////////////////////////////////////////////////////////////
+    Mat *mat = obj->mat_;
     napi_value num;
-    NAPI_CALL(env, napi_create_int32(env, obj->rows, &num));
+    NAPI_CALL(env, napi_create_int32(env, mat->rows, &num));
+    ////////////////////////////////////////////////////////////////////////
 
     return num;
 }
 
-napi_value Mat::set_rows(napi_env env, napi_callback_info info)
+napi_value Addon::set_rows(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value args[1];
     napi_value _this;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
-    Mat *obj;
+    Addon *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
-    NAPI_CALL(env, napi_get_value_int32(env, args[0], &obj->rows));
+    ////////////////////////////////////////////////////////////////////////
+    Mat *mat = obj->mat_;
+    NAPI_CALL(env, napi_get_value_int32(env, args[0], &mat->rows));
+    ////////////////////////////////////////////////////////////////////////
 
     return nullptr;
 }
 
-napi_value Mat::get_data32S(napi_env env, napi_callback_info info)
+napi_value Addon::get_data32S(napi_env env, napi_callback_info info)
 {
     size_t argc = 1;
     napi_value args[1];
     napi_value _this;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
 
-    Mat *obj;
+    Addon *obj;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
 
     ////////////////////////////////////////////////////////////////////////
-    emscripten::val res = binding_utils::matData<int>(*obj);
+    Mat *mat = obj->mat_;
+    emscripten::val res = binding_utils::matData<int>(*mat);
     ////////////////////////////////////////////////////////////////////////
 
     napi_value result;
@@ -278,7 +300,7 @@ napi_value Mat::get_data32S(napi_env env, napi_callback_info info)
 
 napi_value Init(napi_env env, napi_value exports)
 {
-    Mat::Init(env, exports);
+    Addon::Init(env, exports);
     return exports;
 }
 
