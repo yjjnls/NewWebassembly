@@ -3,7 +3,6 @@
 #include <new>
 #include <node_api.h>
 #include "common.h"
-#include "../../example.h"
 #include <map>
 
 class Addon
