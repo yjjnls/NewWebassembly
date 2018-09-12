@@ -25,16 +25,17 @@ class Addon
 
  private:
     static napi_value New(napi_env env, napi_callback_info info);
+
+    ////////////////////////////////////////////////////////////////////////
     static napi_value create(napi_env env, napi_callback_info info);
     static napi_value roi(napi_env env, napi_callback_info info);
     static napi_value get_rows(napi_env env, napi_callback_info info);
     static napi_value set_rows(napi_env env, napi_callback_info info);
     static napi_value get_data32S(napi_env env, napi_callback_info info);
+    ////////////////////////////////////////////////////////////////////////
 
-    static napi_ref constructor;
-
+    static napi_ref constructor_;
     Mat *mat_;
-
     napi_env env_;
     napi_ref wrapper_;
 };
@@ -121,7 +122,7 @@ ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_val
 ///////////////////////////////////////////////////////////////////////////////////
 
 
-napi_ref Addon::constructor;
+napi_ref Addon::constructor_;
 void Addon::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
 {
     Addon *obj = static_cast<Addon *>(nativeObject);
@@ -152,7 +153,7 @@ void Addon::Init(napi_env env, napi_value exports)
                                             properties,
                                             &cons));
 
-    NAPI_CALL_RETURN_VOID(env, napi_create_reference(env, cons, 1, &constructor));
+    NAPI_CALL_RETURN_VOID(env, napi_create_reference(env, cons, 1, &constructor_));
 
     NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, exports, "Mat", cons));
 }
@@ -195,7 +196,7 @@ napi_value Addon::New(napi_env env, napi_callback_info info)
     napi_value argv[1] = {args[0]};
 
     napi_value cons;
-    NAPI_CALL(env, napi_get_reference_value(env, constructor, &cons));
+    NAPI_CALL(env, napi_get_reference_value(env, constructor_, &cons));
 
     napi_value instance;
     NAPI_CALL(env, napi_new_instance(env, cons, argc, argv, &instance));
