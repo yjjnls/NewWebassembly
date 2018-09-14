@@ -94,20 +94,7 @@ void fun_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *a
 }
 
 template <typename ClassType>
-ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
-{
-    switch (argc) {
-        case 1: {
-            void *arg0 = nullptr;
-            napi_get_value_external(env, args[0], arg0);
-
-            return (*obj)(*(Rect *)arg0);
-        } break;
-    }
-}
-
-template <typename ClassType>
-ClassType roi_create_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+ClassType fun_roi_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
 {
     switch (argc) {
         case 1: {
