@@ -45,7 +45,6 @@ class MyClass
     MyClass operator()(const MyClass &m)
     {
         printf("~~~~~~~invoke operator ()\n");
-        printf("~~~~~~~operator () %d\n", m.x_);
         return m;
     }
 

@@ -81,6 +81,7 @@ class Addon
         , wrapper_(nullptr) {}
     ~Addon()
     {
+        napi_delete_reference(env_, wrapper_);
         if (target_ != nullptr) {
             delete target_;
             target_ = nullptr;
@@ -89,9 +90,13 @@ class Addon
     static void Init(napi_env env, napi_value exports);
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
     static napi_status NewInstance(napi_env env, napi_callback_info info, napi_value *instance);
+    static napi_value CreateObject(napi_env env, napi_callback_info info);
+    MyClass *target() { return target_; }
 
  private:
+    static napi_value Release(napi_env env, napi_callback_info info);
     static napi_value New(napi_env env, napi_callback_info info);
+
 
     ////////////////////////////////////////////////////////////////////////
     static napi_value incrementX(napi_env env, napi_callback_info info);
@@ -161,18 +166,9 @@ ClassType fun_oper_factory(ClassType *obj, napi_env env, size_t argc, napi_value
 {
     switch (argc) {
         case 1: {
-            // Addon *obj;
-            // NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
-            MyClass *arg0;
+            Addon *arg0;
             NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0)));
-            printf("~~~~~~~~~~%p\n", obj);
-            printf("~~~~~~~~~~%d\n", obj->getX());
-            printf("~~~~~~~~~~%d\n", sizeof(MyClass));
-
-            printf("~~~~~~~~~~%p\n", (arg0 - 17));
-            printf("~~~~~~~~~~%d\n", (arg0 - 17)->getX());
-            // printf("~~~~~~~~~~%d\n", MyClass::getStringFromInstance(*arg0).c_str());
-            return (*obj)(*obj);
+            return (*obj)(*arg0->target());
         } break;
     }
 }
@@ -186,8 +182,12 @@ void Addon::Destructor(napi_env env, void *nativeObject, void *finalize_hint)
     Addon *obj = static_cast<Addon *>(nativeObject);
     delete obj;
 }
+napi_value Addon::Release(napi_env env, napi_callback_info info)
+{
+    return nullptr;
+}
 
-napi_value CreateObject(napi_env env, napi_callback_info info)
+napi_value Addon::CreateObject(napi_env env, napi_callback_info info)
 {
     napi_value instance;
     NAPI_CALL(env, Addon::NewInstance(env, info, &instance));
@@ -198,6 +198,7 @@ napi_value CreateObject(napi_env env, napi_callback_info info)
 void Addon::Init(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
+        NAPI_DECLARE_METHOD("delete", Release),
         //property
         {"x", nullptr, nullptr, getX, setX, 0, napi_default, 0},
         //function(return type, arguments, function name)
@@ -226,10 +227,6 @@ void Addon::Init(napi_env env, napi_value exports)
 
 napi_value Addon::New(napi_env env, napi_callback_info info)
 {
-    // napi_value new_target;
-    // NAPI_CALL(env, napi_get_new_target(env, info, &new_target));
-    // bool is_constructor = (new_target != nullptr);
-
     size_t argc = 0;
     napi_value _this;
     napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
@@ -243,8 +240,6 @@ napi_value Addon::New(napi_env env, napi_callback_info info)
     //     printf("argument %d type: %d\n", i, valuetype);
     // }
 
-    // if (is_constructor) {
-    // Invoked as constructor: `new MyClass(...)`
     Addon *obj = new Addon();
     MyClass *target = constructor_factory<MyClass>(env, argc, args);
 
@@ -255,19 +250,6 @@ napi_value Addon::New(napi_env env, napi_callback_info info)
                              &obj->wrapper_));
 
     return _this;
-    // }
-
-    // // Invoked as plain function `MyClass(...)`, turn into construct call.
-    // argc = 1;
-    // napi_value argv[argc] = {args[0]};
-
-    // napi_value cons;
-    // NAPI_CALL(env, napi_get_reference_value(env, constructor_, &cons));
-
-    // napi_value instance;
-    // NAPI_CALL(env, napi_new_instance(env, cons, argc, argv, &instance));
-
-    // return instance;
 }
 napi_status Addon::NewInstance(napi_env env, napi_callback_info info, napi_value *instance)
 {
@@ -324,11 +306,8 @@ napi_value Addon::oper(napi_env env, napi_callback_info info)
     MyClass res = fun_oper_factory(target, env, argc, args);
     ////////////////////////////////////////////////////////////////////////
 
-    printf("1\n");
     napi_value result;
-    printf("2\n");
     napi_create_external(env, &res, nullptr, nullptr, &result);
-    printf("3\n");
 
     return result;
 }
@@ -370,31 +349,29 @@ napi_value Addon::setX(napi_env env, napi_callback_info info)
 
 napi_value getStringFromInstance(napi_env env, napi_callback_info info)
 {
-    // size_t argc = 0;
-    // napi_get_cb_info(env, info, &argc, nullptr, nullptr, nullptr);
-    // napi_value args[argc];
-    // NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
-    size_t argc = 1;
-    napi_value args[1];
+    size_t argc = 0;
+    napi_get_cb_info(env, info, &argc, nullptr, nullptr, nullptr);
+    napi_value args[argc];
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
 
-    MyClass *obj1;
-    NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&obj1)));
-    printf("~~~~~~~~~~~~~~getStringFromInstance\n");
+    Addon *arg0;
+    NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0)));
+    std::string res = MyClass::getStringFromInstance(*(arg0->target()));
 
-    // MyClass *arg0;
-    // NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0)));
-    std::string res = MyClass::getStringFromInstance(*obj1);
-    // printf("~~~~~~~~~~~~~~getStringFromInstance: %s\n", res.c_str());
-    return nullptr;
+    napi_value result;
+    napi_create_string_utf8(env, res.c_str(), res.size(), &result);
+    return result;
 }
+
 napi_value Init(napi_env env, napi_value exports)
 {
     Addon::Init(env, exports);
 
     napi_property_descriptor desc[] = {
-        NAPI_DECLARE_METHOD("createObject", CreateObject),
-        NAPI_DECLARE_METHOD("getStringFromInstance", getStringFromInstance)};
+
+        NAPI_DECLARE_METHOD("getStringFromInstance", getStringFromInstance),
+        NAPI_DECLARE_METHOD("createObject", Addon::CreateObject),
+    };
 
     NAPI_CALL(env,
               napi_define_properties(env,

@@ -10,3 +10,7 @@ cd clang+llvm-6.0.1-x86_64-linux-gnu-ubuntu-16.04/
 
 sudo cp -rf * /usr/local
 ```
+
+```
+node --expose-gc test.js
+```
