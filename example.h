@@ -23,7 +23,6 @@ class MyClass
 
     ~MyClass()
     {
-
     }
 
 
@@ -35,7 +34,7 @@ class MyClass
     void incrementX(int i)
     {
         printf("~~~~~~~~~~~ incrementX %d \n", i);
-        x_+=i;
+        x_ += i;
     }
 
     int getX() const { return x_; }
@@ -43,8 +42,10 @@ class MyClass
 
     static std::string getStringFromInstance(const MyClass &instance);
 
-    MyClass operator()(const MyClass& m){
+    MyClass operator()(const MyClass &m)
+    {
         printf("~~~~~~~invoke operator ()\n");
+        printf("~~~~~~~operator () %d\n", m.x_);
         return m;
     }
 
