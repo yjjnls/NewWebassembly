@@ -11,8 +11,12 @@
             console.log('instance.x: ' + instance.x);
             instance.incrementX(3);
             console.log('instance.x: ' + instance.x);
+            instance.incrementX(2, 3);
+            console.log('instance.x: ' + instance.x);
+            console.log('instance.x: ' + instance.name);
 
             console.log('instance.string: ' + Module.MyClass.getStringFromInstance(instance));
+            console.log('instance.name: ' + Module.MyClass.getname(instance));
             instance.delete();
         }
     };

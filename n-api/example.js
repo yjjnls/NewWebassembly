@@ -11,16 +11,21 @@ class MyClass {
         else
             this.target = new Module.MyClass();
 
-        this.x = this.target.x;
+        // this.x = (()=>{return this.target.x})();
+        this.x= this.target.x.bind(this.x);
+        // this.bind(this.target)
+        // this= this.target
     }
 
     oper(val) {
         return this.target.oper(val.target);
     }
-    incrementX(val) {
-        if (!!val)
-            this.target.incrementX(val);
-        else
+    incrementX(val1, val2) {
+        if (!!val1 && !!val2)
+            this.target.incrementX(val1, val2);
+        if (!!val1 && !val2)
+            this.target.incrementX(val1);
+        if (!val1 && !val2)
             this.target.incrementX();
     }
     static getStringFromInstance(val) {

@@ -1755,8 +1755,8 @@ var ASM_CONSTS = [];
 
 STATIC_BASE = GLOBAL_BASE;
 
-STATICTOP = STATIC_BASE + 8256;
-/* global initializers */  __ATINIT__.push({ func: function() { __GLOBAL__sub_I_example_cc() } }, { func: function() { __GLOBAL__sub_I_bind_cpp() } });
+STATICTOP = STATIC_BASE + 8336;
+/* global initializers */  __ATINIT__.push({ func: function() { __GLOBAL__sub_I_myclass_binding_cc() } }, { func: function() { __GLOBAL__sub_I_bind_cpp() } });
 
 
 
@@ -1764,7 +1764,7 @@ STATICTOP = STATIC_BASE + 8256;
 
 
 
-var STATIC_BUMP = 8256;
+var STATIC_BUMP = 8336;
 Module["STATIC_BASE"] = STATIC_BASE;
 Module["STATIC_BUMP"] = STATIC_BUMP;
 
@@ -3783,9 +3783,9 @@ function nullFunc_viiiii(x) { err("Invalid function pointer called with signatur
 
 function nullFunc_viiiiii(x) { err("Invalid function pointer called with signature 'viiiiii'. Perhaps this is an invalid value (e.g. caused by calling a virtual method on a NULL pointer)? Or calling a function with an incorrect type, which will fail? (it is worth building your source files with -Werror (warnings are errors), as warnings can indicate undefined behavior which can cause this)");  err("Build with ASSERTIONS=2 for more info.");abort(x) }
 
-Module['wasmTableSize'] = 513;
+Module['wasmTableSize'] = 545;
 
-Module['wasmMaxTableSize'] = 513;
+Module['wasmMaxTableSize'] = 545;
 
 function invoke_i(index) {
   var sp = stackSave();
@@ -3921,10 +3921,10 @@ var real___GLOBAL__sub_I_bind_cpp = asm["__GLOBAL__sub_I_bind_cpp"]; asm["__GLOB
   return real___GLOBAL__sub_I_bind_cpp.apply(null, arguments);
 };
 
-var real___GLOBAL__sub_I_example_cc = asm["__GLOBAL__sub_I_example_cc"]; asm["__GLOBAL__sub_I_example_cc"] = function() {
+var real___GLOBAL__sub_I_myclass_binding_cc = asm["__GLOBAL__sub_I_myclass_binding_cc"]; asm["__GLOBAL__sub_I_myclass_binding_cc"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return real___GLOBAL__sub_I_example_cc.apply(null, arguments);
+  return real___GLOBAL__sub_I_myclass_binding_cc.apply(null, arguments);
 };
 
 var real____errno_location = asm["___errno_location"]; asm["___errno_location"] = function() {
@@ -4015,10 +4015,10 @@ var __GLOBAL__sub_I_bind_cpp = Module["__GLOBAL__sub_I_bind_cpp"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
   return Module["asm"]["__GLOBAL__sub_I_bind_cpp"].apply(null, arguments) };
-var __GLOBAL__sub_I_example_cc = Module["__GLOBAL__sub_I_example_cc"] = function() {
+var __GLOBAL__sub_I_myclass_binding_cc = Module["__GLOBAL__sub_I_myclass_binding_cc"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
-  return Module["asm"]["__GLOBAL__sub_I_example_cc"].apply(null, arguments) };
+  return Module["asm"]["__GLOBAL__sub_I_myclass_binding_cc"].apply(null, arguments) };
 var ___errno_location = Module["___errno_location"] = function() {
   assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
   assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');

@@ -111,19 +111,24 @@ class Addon
     napi_ref wrapper_;
 };
 
-template <typename ClassType>
-ClassType *constructor_factory(napi_env env, size_t argc, napi_value *args)
+namespace binding_utils {
+extern void increase(MyClass &, int, int);
+}  // namespace binding_utils
+using namespace binding_utils;
+
+
+MyClass *constructor_factory(napi_env env, size_t argc, napi_value *args)
 {
-    ClassType *p = nullptr;
+    MyClass *p = nullptr;
     switch (argc) {
         case 0: {
-            p = new ClassType();
+            p = new MyClass();
         } break;
         case 1: {
             int32_t arg0 = 0;
             napi_get_value_int32(env, args[0], &arg0);
 
-            p = new ClassType(arg0);
+            p = new MyClass(arg0);
         } break;
         case 2: {
             int32_t arg0 = 0;
@@ -135,7 +140,7 @@ ClassType *constructor_factory(napi_env env, size_t argc, napi_value *args)
             size_t res;
             napi_get_value_string_utf8(env, args[1], (char *)arg1.c_str(), strlen + 1, &res);
 
-            p = new ClassType(arg0, arg1);
+            p = new MyClass(arg0, arg1);
         } break;
         case 3: {
         } break;
@@ -145,33 +150,41 @@ ClassType *constructor_factory(napi_env env, size_t argc, napi_value *args)
     return p;
 }
 
-template <typename ClassType>
-void fun_incrementX_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+void fun_incrementX_factory(MyClass *obj, napi_env env, size_t argc, napi_value *args)
 {
     switch (argc) {
         case 0: {
-            obj->incrementX();
+            return obj->incrementX();
         } break;
         case 1: {
             int32_t arg0 = 0;
             napi_get_value_int32(env, args[0], &arg0);
 
-            obj->incrementX(arg0);
+            return obj->incrementX(arg0);
+        } break;
+        case 2: {
+            int32_t arg0 = 0;
+            napi_get_value_int32(env, args[0], &arg0);
+            int32_t arg1 = 0;
+            napi_get_value_int32(env, args[1], &arg1);
+
+            return binding_utils::increase(*obj, arg0, arg1);
         } break;
     }
 }
 
-template <typename ClassType>
-ClassType fun_oper_factory(ClassType *obj, napi_env env, size_t argc, napi_value *args)
+MyClass fun_oper_factory(MyClass *obj, napi_env env, size_t argc, napi_value *args)
 {
     switch (argc) {
         case 1: {
-            Addon *arg0;
-            NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0)));
-            return (*obj)(*arg0->target());
+            Addon *p;
+            napi_unwrap(env, args[0], reinterpret_cast<void **>(&p));
+            MyClass &arg0 = *(p->target());
+            return (*obj)(arg0);
         } break;
     }
 }
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 
@@ -190,7 +203,7 @@ napi_value Addon::Release(napi_env env, napi_callback_info info)
 napi_value Addon::CreateObject(napi_env env, napi_callback_info info)
 {
     napi_value instance;
-    NAPI_CALL(env, Addon::NewInstance(env, info, &instance));
+    Addon::NewInstance(env, info, &instance);
 
     return instance;
 }
@@ -208,19 +221,18 @@ void Addon::Init(napi_env env, napi_value exports)
     };
 
     napi_value cons;
-    NAPI_CALL_RETURN_VOID(env,
-                          napi_define_class(env,
-                                            "MyClass",
-                                            -1,
-                                            New,
-                                            nullptr,
-                                            sizeof(properties) / sizeof(properties[0]),
-                                            properties,
-                                            &cons));
+    napi_define_class(env,
+                      "MyClass",
+                      -1,
+                      New,
+                      nullptr,
+                      sizeof(properties) / sizeof(properties[0]),
+                      properties,
+                      &cons);
 
-    NAPI_CALL_RETURN_VOID(env, napi_create_reference(env, cons, 1, &constructor_));
+    napi_create_reference(env, cons, 1, &constructor_);
 
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, exports, "MyClass", cons));
+    napi_set_named_property(env, exports, "MyClass", cons);
 }
 
 
@@ -231,23 +243,16 @@ napi_value Addon::New(napi_env env, napi_callback_info info)
     napi_value _this;
     napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
     napi_value args[argc];
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
-
-    // printf("constructor arguments: %d\n", argc);
-    // napi_valuetype valuetype;
-    // for (int i = 0; i < argc; ++i) {
-    //     NAPI_CALL(env, napi_typeof(env, args[i], &valuetype));
-    //     printf("argument %d type: %d\n", i, valuetype);
-    // }
+    napi_get_cb_info(env, info, &argc, args, &_this, nullptr);
 
     Addon *obj = new Addon();
-    MyClass *target = constructor_factory<MyClass>(env, argc, args);
+    MyClass *target = constructor_factory(env, argc, args);
 
     obj->env_ = env;
     obj->target_ = target;
-    NAPI_CALL(env, napi_wrap(env, _this, obj, Addon::Destructor,
-                             nullptr,  // finalize_hint
-                             &obj->wrapper_));
+    env, napi_wrap(env, _this, obj, Addon::Destructor,
+                   nullptr,  // finalize_hint
+                   &obj->wrapper_);
 
     return _this;
 }
@@ -278,10 +283,10 @@ napi_value Addon::incrementX(napi_env env, napi_callback_info info)
     napi_value _this;
     napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
     napi_value args[argc];
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
+    napi_get_cb_info(env, info, &argc, args, &_this, nullptr);
 
     Addon *obj;
-    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
+    napi_unwrap(env, _this, reinterpret_cast<void **>(&obj));
 
     ////////////////////////////////////////////////////////////////////////
     MyClass *target = obj->target_;
@@ -296,10 +301,10 @@ napi_value Addon::oper(napi_env env, napi_callback_info info)
     napi_value _this;
     napi_get_cb_info(env, info, &argc, nullptr, &_this, nullptr);
     napi_value args[argc];
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, &_this, nullptr));
+    napi_get_cb_info(env, info, &argc, args, &_this, nullptr);
 
     Addon *obj;
-    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
+    env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj));
 
     ////////////////////////////////////////////////////////////////////////
     MyClass *target = obj->target_;
@@ -314,18 +319,19 @@ napi_value Addon::oper(napi_env env, napi_callback_info info)
 napi_value Addon::getX(napi_env env, napi_callback_info info)
 {
     napi_value _this;
-    NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+    env, napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr);
 
     Addon *obj;
-    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void **>(&obj)));
+    napi_unwrap(env, _this, reinterpret_cast<void **>(&obj));
 
     ////////////////////////////////////////////////////////////////////////
     MyClass *target = obj->target_;
-    napi_value num;
-    NAPI_CALL(env, napi_create_int32(env, target->getX(), &num));
+    napi_value res;
+    napi_create_int32(env, target->getX(), &res);
+    printf("=========== x : %d\n", target->getX());
     ////////////////////////////////////////////////////////////////////////
 
-    return num;
+    return res;
 }
 napi_value Addon::setX(napi_env env, napi_callback_info info)
 {
@@ -340,7 +346,7 @@ napi_value Addon::setX(napi_env env, napi_callback_info info)
     ////////////////////////////////////////////////////////////////////////
     MyClass *target = obj->target_;
     int32_t value;
-    NAPI_CALL(env, napi_get_value_int32(env, args[0], &value));
+    napi_get_value_int32(env, args[0], &value);
     target->setX(value);
     ////////////////////////////////////////////////////////////////////////
 
@@ -352,10 +358,10 @@ napi_value getStringFromInstance(napi_env env, napi_callback_info info)
     size_t argc = 0;
     napi_get_cb_info(env, info, &argc, nullptr, nullptr, nullptr);
     napi_value args[argc];
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
     Addon *arg0;
-    NAPI_CALL(env, napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0)));
+    napi_unwrap(env, args[0], reinterpret_cast<void **>(&arg0));
     std::string res = MyClass::getStringFromInstance(*(arg0->target()));
 
     napi_value result;
@@ -373,11 +379,10 @@ napi_value Init(napi_env env, napi_value exports)
         NAPI_DECLARE_METHOD("createObject", Addon::CreateObject),
     };
 
-    NAPI_CALL(env,
-              napi_define_properties(env,
-                                     exports,
-                                     sizeof(desc) / sizeof(*desc),
-                                     desc));
+    napi_define_properties(env,
+                           exports,
+                           sizeof(desc) / sizeof(*desc),
+                           desc);
     return exports;
 }
 

@@ -7,6 +7,7 @@
                 'include'
             ],
             "sources": ["src/bind.cc",
+                        "../myclass_binding.cc",
                         "../example.cc"],
             "conditions": [
                 # ["OS==\"mac\"", {"libraries": ["-ljpeg"],
